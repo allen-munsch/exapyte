@@ -1,0 +1,74 @@
+{
+    "node_id": "node1",
+    "region_id": "region1",
+    
+    "storage": {
+        "type": "memory",
+        "config": {
+            "max_size": 10000,
+            "eviction_policy": "LRU"
+        }
+    },
+    
+    "network": {
+        "address": "localhost:8000",
+        "simulation_mode": false,
+        "cluster": {
+            "nodes": {
+                "node1": {
+                    "address": "localhost:8000",
+                    "region": "region1"
+                },
+                "node2": {
+                    "address": "localhost:8001",
+                    "region": "region1"
+                },
+                "node3": {
+                    "address": "localhost:8002",
+                    "region": "region2"
+                }
+            }
+        }
+    },
+    
+    "consensus": {
+        "type": "raft",
+        "config": {
+            "election_timeout_base": 150,
+            "election_timeout_spread": 150,
+            "heartbeat_interval": 50
+        }
+    },
+    
+    "replication": {
+        "type": "async",
+        "config": {
+            "replication_nodes": ["node2", "node3"],
+            "replication_interval_ms": 100,
+            "replication_batch_size": 100
+        }
+    },
+    
+    "distribution": {
+        "type": "sharded",
+        "config": {
+            "sharding_method": "hash",
+            "num_virtual_nodes": 100,
+            "shard_nodes": ["node1", "node2", "node3"],
+            "is_coordinator": true
+        }
+    },
+    
+    "control_plane": {
+        "is_leader": true,
+        "leadership_check_interval": 5.0,
+        "metadata_sync_interval": 30.0
+    },
+    
+    "data_plane": {
+        "default_consistency": "eventual",
+        "request_timeout": 5.0,
+        "enable_caching": true,
+        "cache_ttl": 60
+    }
+}

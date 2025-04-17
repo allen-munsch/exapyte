@@ -1,0 +1,20 @@
+Exapyte Testing Roadmap: TDD Approach for MVP Development
+Overview
+This document outlines a Test-Driven Development (TDD) approach to evolve the Exapyte distributed data platform from a basic demonstration to a fully featured Minimum Viable Product (MVP). The testing strategy progresses from unit tests to integration tests, ensuring quality and functionality at each step.
+Testing Tools & Frameworks
+
+pytest: Core testing framework
+pytest-asyncio: For testing async functions
+pytest-anyio: For testing code that uses anyio
+pytest-cov: For measuring code coverage
+pytest-mock: For mocking dependencies
+
+Phase 1: Core Component Unit Testing
+Storage Layer Testing
+Scenario: In-Memory Storage Operations
+
+Given an initialized MemoryStore instance
+When basic operations are performed (get, set, delete)
+Then the operations should work as expected
+Why: The storage layer is foundational - all other components depend on reliable data storage
+
