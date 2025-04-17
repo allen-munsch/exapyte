@@ -18,9 +18,25 @@ A high-scale, multi-region distributed data platform demonstrating various thing
 git clone https://github.com/allen-munsch/exapyte.git
 cd exapyte
 
-# Install dependencies
-pip install -r requirements.txt
+# Install in editable mode with development dependencies using uv
+uv pip install -e ".[dev]"
+
+# Alternative: production install only
+uv pip install -e .
 ```
+
+## Development Setup
+
+For development with all tools:
+```bash
+uv pip install -e ".[dev,test,docs]"
+```
+
+The `pyproject.toml` specifies:
+- Project metadata and dependencies
+- Optional dependencies groups (dev, test, docs)
+- Build system requirements
+- Editable installation configuration
 
 ## Running a Node
 
@@ -33,8 +49,6 @@ python main.py --node --config your_config.json --verbose
 The configuration file specifies all aspects of the node's behavior. See `config.json` for a template.
 
 ## Running Demonstrations
-
-To run demonstrations that showcase different aspects of the platform:
 
 ```bash
 # Consensus protocol comparison
@@ -79,3 +93,5 @@ The platform is designed with extensibility in mind:
 - Create custom storage backends by extending the storage base class
 - Develop new replication strategies for specific use cases
 - Implement specialized distribution strategies for different workloads
+
+Note: The `-e` flag installs in editable mode (equivalent to `pip install -e`), which is particularly useful during development as it allows live code changes without reinstallation. The `uv` pip replacement offers significantly faster dependency resolution and installation.
