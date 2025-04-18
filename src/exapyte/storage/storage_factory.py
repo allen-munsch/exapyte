@@ -161,8 +161,6 @@ class StorageFactory:
         elif storage_type == StorageType.DISK:
             return DiskStore(config)
         elif storage_type == StorageType.TIERED:
-            # Import here to avoid circular imports
-            from src.exapyte.storage.tiered_store import TieredStore
             return TieredStore(config)
         else:
             raise ValueError(f"Unsupported storage type: {storage_type}")
