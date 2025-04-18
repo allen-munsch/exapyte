@@ -82,8 +82,7 @@ class NetworkManager:
         self.logger.info(f"Starting network manager for node {self.node_id}")
         
         # Register built-in handlers
-        if "ping" not in self.rpc_handlers:
-            self.rpc_handlers["ping"] = self._handle_ping
+        self.rpc_handlers["ping"] = self._handle_ping
         
         if self.simulation_mode:
             # In simulation mode, create simulated network
