@@ -8,6 +8,7 @@ set -e
 cd "$(dirname "$0")/.."
 
 # Run pytest with coverage
-python -m pytest tests/ -v --cov=src/exapyte --cov-report=term --cov-report=html
+#python -m pytest tests/ -v --cov=src/exapyte --cov-report=term --cov-report=html
+#echo "Coverage report generated in htmlcov/"
 
-echo "Coverage report generated in htmlcov/"
+python -m pytest -svvl tests/
