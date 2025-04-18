@@ -81,6 +81,10 @@ class NetworkManager:
         """Start the network manager"""
         self.logger.info(f"Starting network manager for node {self.node_id}")
         
+        # Register built-in handlers
+        if "ping" not in self.rpc_handlers:
+            self.rpc_handlers["ping"] = self._handle_ping
+        
         if self.simulation_mode:
             # In simulation mode, create simulated network
             from exapyte.simulation.network_sim import SimulatedNetwork

@@ -11,9 +11,7 @@ import logging
 from enum import Enum
 
 # Import consensus implementations (will be implemented later)
-from exapyte.consensus.raft_node import RaftNode
-from exapyte.consensus.paxos_node import PaxosNode
-from exapyte.consensus.zab_node import ZabNode
+# These imports are used in the create_consensus_node method
 
 
 class ConsensusType(Enum):
