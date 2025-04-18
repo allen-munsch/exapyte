@@ -38,7 +38,7 @@ class MemoryStore:
         self.logger = logging.getLogger("storage.memory")
         
         # Main data store
-        self.data: Dict[str, Dict[str, Any]] = {}
+        self.data: Dict[str, Any] = {}
         
         # Metadata
         self.access_time: Dict[str, float] = {}  # Last access time

@@ -420,3 +420,70 @@ class TieredStore:
                     self.logger.debug(f"Demoted key {key} to disk tier")
             except Exception as e:
                 self.logger.error(f"Error demoting key {key}: {e}")
+"""
+src/exapyte/storage/tiered_store.py
+==================================
+
+Tiered storage implementation for exapyte.
+Combines memory and disk storage for optimal performance.
+"""
+
+import asyncio
+import logging
+import time
+from typing import Dict, Any, List, Optional, Set, Tuple
+
+
+class TieredStore:
+    """
+    Tiered storage implementation
+    
+    Features:
+    - Hot data in memory, cold data on disk
+    - Automatic promotion/demotion between tiers
+    - Configurable tier policies
+    - Optimized for access patterns
+    """
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        """
+        Initialize the tiered store
+        
+        Args:
+            config: Configuration parameters
+                - memory_tier_size: Maximum size of memory tier
+                - promotion_threshold: Access count to promote to memory
+                - demotion_threshold: Time without access to demote to disk
+                - memory_tier_config: Configuration for memory tier
+                - disk_tier_config: Configuration for disk tier
+        """
+        self.config = config or {}
+        self.logger = logging.getLogger("storage.tiered")
+        
+        # This is a placeholder implementation
+        # The full implementation would initialize memory and disk tiers
+        self.logger.info("TieredStore initialized (placeholder)")
+    
+    async def start(self):
+        """Start the tiered store"""
+        pass
+    
+    async def stop(self):
+        """Stop the tiered store"""
+        pass
+    
+    async def get(self, key: str) -> Optional[Any]:
+        """Get a value by key"""
+        return None
+    
+    async def set(self, key: str, value: Any) -> bool:
+        """Set a value by key"""
+        return True
+    
+    async def delete(self, key: str) -> bool:
+        """Delete a value by key"""
+        return True
+    
+    async def exists(self, key: str) -> bool:
+        """Check if a key exists"""
+        return False

@@ -258,3 +258,157 @@ async def test_metrics(disk_store):
     assert metrics["gets"] >= 2
     assert metrics["sets"] >= 1
     assert metrics["deletes"] >= 1
+"""
+tests/test_disk_store.py
+=======================
+
+Unit tests for the disk-based storage implementation.
+"""
+
+import pytest
+import asyncio
+import os
+import shutil
+import tempfile
+from src.exapyte.storage.disk_store import DiskStore
+
+
+@pytest.fixture
+async def disk_store():
+    """Fixture to create and initialize a DiskStore instance for testing"""
+    # Create a temporary directory for testing
+    temp_dir = tempfile.mkdtemp()
+    
+    # Configure the store with the temp directory
+    config = {
+        "data_dir": temp_dir,
+        "sync_writes": True,
+        "compaction_interval": 0.5  # Short interval for testing
+    }
+    
+    store = DiskStore(config)
+    await store.start()
+    
+    yield store
+    
+    # Clean up
+    await store.stop()
+    shutil.rmtree(temp_dir)
+
+
+@pytest.mark.asyncio
+async def test_disk_store_initialization():
+    """Test that a DiskStore initializes correctly"""
+    # Create a temporary directory
+    temp_dir = tempfile.mkdtemp()
+    
+    try:
+        # Create store with custom config
+        config = {
+            "data_dir": temp_dir,
+            "sync_writes": True,
+            "compaction_interval": 300
+        }
+        store = DiskStore(config)
+        
+        # Verify config was applied
+        assert store.config == config
+        assert store.data_dir == temp_dir
+        assert store.sync_writes is True
+        assert store.compaction_interval == 300
+    finally:
+        # Clean up
+        shutil.rmtree(temp_dir)
+
+
+@pytest.mark.asyncio
+async def test_disk_store_set_and_get(disk_store):
+    """Test setting and getting values"""
+    # Set a simple value
+    await disk_store.set("test_key", "test_value")
+    
+    # Get the value
+    value = await disk_store.get("test_key")
+    
+    # Verify value was stored correctly
+    assert value == "test_value"
+    
+    # Set a complex value
+    complex_value = {"name": "test", "data": [1, 2, 3], "nested": {"a": 1}}
+    await disk_store.set("complex_key", complex_value)
+    
+    # Get the complex value
+    retrieved_value = await disk_store.get("complex_key")
+    
+    # Verify complex value was stored correctly
+    assert retrieved_value == complex_value
+
+
+@pytest.mark.asyncio
+async def test_disk_store_delete(disk_store):
+    """Test deleting values"""
+    # Set a value
+    await disk_store.set("delete_key", "delete_value")
+    
+    # Verify it exists
+    assert await disk_store.get("delete_key") == "delete_value"
+    
+    # Delete it
+    result = await disk_store.delete("delete_key")
+    
+    # Verify delete was successful
+    assert result is True
+    
+    # Verify it's gone
+    assert await disk_store.get("delete_key") is None
+    
+    # Try deleting non-existent key
+    result = await disk_store.delete("nonexistent_key")
+    
+    # Should return False for non-existent key
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_disk_store_persistence(disk_store):
+    """Test that data persists across store restarts"""
+    # Set a value
+    test_key = "persistence_key"
+    test_value = {"persistent": True, "data": "test"}
+    
+    await disk_store.set(test_key, test_value)
+    
+    # Stop the store
+    await disk_store.stop()
+    
+    # Start it again (same instance, same temp directory)
+    await disk_store.start()
+    
+    # Verify the value is still there
+    retrieved_value = await disk_store.get(test_key)
+    assert retrieved_value == test_value
+
+
+@pytest.mark.asyncio
+async def test_disk_store_transaction_log(disk_store):
+    """Test that transaction log works correctly"""
+    # Set some values
+    await disk_store.set("txn_key1", "txn_value1")
+    await disk_store.set("txn_key2", "txn_value2")
+    
+    # Update a value
+    await disk_store.set("txn_key1", "txn_value1_updated")
+    
+    # Delete a value
+    await disk_store.delete("txn_key2")
+    
+    # Verify the final state
+    assert await disk_store.get("txn_key1") == "txn_value1_updated"
+    assert await disk_store.get("txn_key2") is None
+    
+    # Force a compaction
+    await disk_store._compact()
+    
+    # Verify state is still correct after compaction
+    assert await disk_store.get("txn_key1") == "txn_value1_updated"
+    assert await disk_store.get("txn_key2") is None
