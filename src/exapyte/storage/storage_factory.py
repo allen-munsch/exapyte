@@ -41,6 +41,14 @@ class StorageFactory:
         """
         config = config or {}
         logger = logging.getLogger("storage.factory")
+        
+        # Handle both enum and string inputs
+        if isinstance(storage_type, str):
+            try:
+                storage_type = StorageType(storage_type)
+            except ValueError:
+                raise ValueError(f"Unsupported storage type: {storage_type}")
+        
         logger.info(f"Creating {storage_type.value} storage backend")
         
         if storage_type == StorageType.MEMORY:

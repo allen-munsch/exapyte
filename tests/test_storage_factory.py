@@ -34,7 +34,7 @@ def test_create_disk_storage():
 def test_invalid_storage_type():
     """Test that invalid storage type raises ValueError"""
     with pytest.raises(ValueError):
-        StorageFactory.create_storage("invalid_type")
+        StorageFactory.create_storage(StorageType("invalid_type"))
 
 
 def test_get_storage_characteristics():
