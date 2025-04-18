@@ -23,6 +23,13 @@ uv pip install -e ".[dev]"
 
 # Alternative: production install only
 uv pip install -e .
+
+pyenv local 3.13.2
+python -m venv venv_3132
+. venv_3132/bin/activate
+pip install -U pip
+pip install uv
+uv pip install -e '.'
 ```
 
 ## Development Setup
