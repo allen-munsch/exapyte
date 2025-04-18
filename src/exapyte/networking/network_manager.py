@@ -232,7 +232,7 @@ class NetworkManager:
         }
     
     async def send_rpc(self, target_node_id: str, rpc_type: str, payload: Dict[str, Any],
-                      timeout: float = None, retries: int = None) -> Optional[Dict[str, Any]]:
+                    timeout: float = None, retries: int = None) -> Optional[Dict[str, Any]]:
         """
         Send an RPC to a target node
         
@@ -291,8 +291,8 @@ class NetworkManager:
                 if self.network_manager:
                     response = await self.network_manager.send_rpc(
                         target_node_id, 
-                        "append_entries", 
-                        request
+                        rpc_type,  # Changed from hardcoded "append_entries" to use the parameter
+                        request_data  # Fixed: using request_data instead of undefined 'request'
                     )
                     return response
                 else:
@@ -314,24 +314,18 @@ class NetworkManager:
                             error_text = await response.text()
                             self.logger.warning(f"RPC failed with status {response.status}: {error_text}")
                 
-            except asyncio.TimeoutError:
-                self.logger.warning(f"RPC to {target_node_id} timed out after {current_timeout}s")
-                self.rpc_stats["timeouts"] += 1
-                
-            except Exception as e:
-                self.logger.warning(f"Error sending RPC to {target_node_id}: {e}")
-                self.rpc_stats["failures"] += 1
-            
-            # Retry with exponential backoff
-            current_retry += 1
-            if current_retry <= retries:
-                self.rpc_stats["retries"] += 1
-                current_timeout *= self.retry_backoff
-                await asyncio.sleep(0.1 * current_retry)  # Small delay before retry
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                self.logger.warning(f"RPC attempt {current_retry+1} failed: {str(e)}")
+                current_retry += 1
+                if current_retry <= retries:
+                    # Exponential backoff
+                    current_timeout *= 2
+                    await asyncio.sleep(1)
         
-        self.logger.error(f"RPC {rpc_type} to {target_node_id} failed after {retries} retries")
+        self.rpc_stats["failed"] += 1
+        self.logger.error(f"RPC to {target_node_id} failed after {retries} retries")
         return None
-    
+
     async def _send_simulated_rpc(self, target_node_id: str, rpc_type: str, 
                                  payload: Dict[str, Any], timeout: float) -> Optional[Dict[str, Any]]:
         """
