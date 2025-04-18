@@ -40,13 +40,23 @@ class ProtocolFactory:
         Returns:
             A consensus protocol node implementation
         """
+        # Handle both enum and string inputs
+        if isinstance(protocol_type, str):
+            try:
+                protocol_type = ConsensusType(protocol_type)
+            except ValueError:
+                raise ValueError(f"Unsupported consensus protocol: {protocol_type}")
+                
         logging.info(f"Creating {protocol_type.value} consensus node with ID {node_id}")
         
         if protocol_type == ConsensusType.RAFT:
+            from src.exapyte.consensus.raft_node import RaftNode
             return RaftNode(node_id, cluster_config, **kwargs)
         elif protocol_type == ConsensusType.PAXOS:
+            from src.exapyte.consensus.paxos_node import PaxosNode
             return PaxosNode(node_id, cluster_config, **kwargs)
         elif protocol_type == ConsensusType.ZAB:
+            from src.exapyte.consensus.zab_node import ZabNode
             return ZabNode(node_id, cluster_config, **kwargs)
         else:
             raise ValueError(f"Unsupported consensus protocol: {protocol_type}")

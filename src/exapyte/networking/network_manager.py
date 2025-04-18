@@ -283,23 +283,32 @@ class NetworkManager:
             try:
                 self.logger.debug(f"Sending RPC {rpc_type} to {target_node_id} (attempt {current_retry+1})")
                 
-                # Send HTTP request
-                url = f"http://{target_address}/rpc"
-                
-                # Use client timeout
-                timeout_obj = aiohttp.ClientTimeout(total=current_timeout)
-                
-                async with self.client_session.post(
-                    url, json=request_data, timeout=timeout_obj
-                ) as response:
-                    # Check response status
-                    if response.status == 200:
-                        # Parse response
-                        response_data = await response.json()
-                        return response_data.get("result")
-                    else:
-                        error_text = await response.text()
-                        self.logger.warning(f"RPC failed with status {response.status}: {error_text}")
+                # If we have a network manager, use it
+                if self.network_manager:
+                    response = await self.network_manager.send_rpc(
+                        target_node_id, 
+                        "append_entries", 
+                        request
+                    )
+                    return response
+                else:
+                    # Fallback to direct HTTP (not used in tests)
+                    url = f"http://{target_address}/rpc"
+                    
+                    # Use client timeout
+                    timeout_obj = aiohttp.ClientTimeout(total=current_timeout)
+                    
+                    async with self.client_session.post(
+                        url, json=request_data, timeout=timeout_obj
+                    ) as response:
+                        # Check response status
+                        if response.status == 200:
+                            # Parse response
+                            response_data = await response.json()
+                            return response_data.get("result")
+                        else:
+                            error_text = await response.text()
+                            self.logger.warning(f"RPC failed with status {response.status}: {error_text}")
                 
             except asyncio.TimeoutError:
                 self.logger.warning(f"RPC to {target_node_id} timed out after {current_timeout}s")

@@ -7,9 +7,6 @@ Unit tests for the consensus protocol factory.
 
 import pytest
 from src.exapyte.consensus.protocol_factory import ProtocolFactory, ConsensusType
-from src.exapyte.consensus.raft_node import RaftNode
-from src.exapyte.consensus.paxos_node import PaxosNode
-from src.exapyte.consensus.zab_node import ZabNode
 
 
 def test_create_raft_node():

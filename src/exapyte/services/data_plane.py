@@ -116,6 +116,10 @@ class DataPlane:
                 "invalidate_cache": self.handle_invalidate_cache
             })
         
+        # Add built-in handlers if not overridden
+        if "ping" not in self.rpc_handlers:
+            self.rpc_handlers["ping"] = self._handle_ping
+        
         # Start background tasks
         if self.enable_caching:
             self.cache_cleanup_task = asyncio.create_task(self._cache_cleanup_loop())

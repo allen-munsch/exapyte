@@ -115,7 +115,8 @@ class RaftNode:
                     
                     # Load log entries
                     log_data = await self.storage_engine.load_log_entries()
-                    self.log = [LogEntry.from_dict(entry) for entry in log_data]
+                    if log_data:
+                        self.log = [LogEntry.from_dict(entry) for entry in log_data]
                     
                     self.logger.info(f"Loaded persistent state: term={self.current_term}, "
                                      f"voted_for={self.voted_for}, log_entries={len(self.log)}")
@@ -272,7 +273,11 @@ class RaftNode:
             self.election_timer.cancel()
         
         # Randomize timeout to prevent split votes
-        timeout_ms = random.randint(self.election_timeout_min, self.election_timeout_max)
+        # Convert to integers for randint if they're floats
+        min_ms = int(self.election_timeout_min) if isinstance(self.election_timeout_min, float) else self.election_timeout_min
+        max_ms = int(self.election_timeout_max) if isinstance(self.election_timeout_max, float) else self.election_timeout_max
+        
+        timeout_ms = random.randint(min_ms, max_ms)
         timeout_sec = timeout_ms / 1000
         
         self.election_timer = asyncio.create_task(self._election_timeout(timeout_sec))
@@ -846,7 +851,10 @@ class RaftNode:
         }
         
         try:
-            await self.storage_engine.save_raft_state(state)
+            # Handle both async and sync storage engines
+            result = self.storage_engine.save_raft_state(state)
+            if asyncio.iscoroutine(result):
+                await result
         except Exception as e:
             self.logger.error(f"Failed to persist Raft state: {e}")
     
@@ -857,6 +865,9 @@ class RaftNode:
         
         try:
             log_data = [entry.to_dict() for entry in self.log]
-            await self.storage_engine.save_log_entries(log_data)
+            # Handle both async and sync storage engines
+            result = self.storage_engine.save_log_entries(log_data)
+            if asyncio.iscoroutine(result):
+                await result
         except Exception as e:
             self.logger.error(f"Failed to persist log entries: {e}")
