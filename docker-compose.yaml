@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    container_name: exapyte-node1
+    volumes:
+      - ./:/app
+    ports:
+      - "8001:8000"
+    environment:
+      - NODE_ID=node1
+      - REGION_ID=region1
+    command: python main.py --node --config config.json --verbose
+    networks:
+      - exapyte-network
+
+  node2:
+    build: .
+    container_name: exapyte-node2
+    volumes:
+      - ./:/app
+    ports:
+      - "8002:8000"
+    environment:
+      - NODE_ID=node2
+      - REGION_ID=region1
+    command: python main.py --node --config config.json --verbose
+    networks:
+      - exapyte-network
+    depends_on:
+      - node1
+
+  node3:
+    build: .
+    container_name: exapyte-node3
+    volumes:
+      - ./:/app
+    ports:
+      - "8003:8000"
+    environment:
+      - NODE_ID=node3
+      - REGION_ID=region2
+    command: python main.py --node --config config.json --verbose
+    networks:
+      - exapyte-network
+    depends_on:
+      - node1
+
+  integration-tests:
+    build: .
+    container_name: exapyte-tests
+    volumes:
+      - ./:/app
+    environment:
+      - PYTHONPATH=/app
+    command: pytest tests/integration -v
+    networks:
+      - exapyte-network
+    depends_on:
+      - node1
+      - node2
+      - node3
+
+networks:
+  exapyte-network:
+    driver: bridge
