@@ -1,20 +1,348 @@
-Exapyte Testing Roadmap: TDD Approach for MVP Development
-Overview
+# Exapyte Testing Roadmap: TDD Approach for MVP Development
+
+## Overview
+
 This document outlines a Test-Driven Development (TDD) approach to evolve the Exapyte distributed data platform from a basic demonstration to a fully featured Minimum Viable Product (MVP). The testing strategy progresses from unit tests to integration tests, ensuring quality and functionality at each step.
-Testing Tools & Frameworks
 
-pytest: Core testing framework
-pytest-asyncio: For testing async functions
-pytest-anyio: For testing code that uses anyio
-pytest-cov: For measuring code coverage
-pytest-mock: For mocking dependencies
+## Testing Tools & Frameworks
 
-Phase 1: Core Component Unit Testing
-Storage Layer Testing
-Scenario: In-Memory Storage Operations
+- **pytest**: Core testing framework
+- **pytest-asyncio**: For testing async functions
+- **pytest-anyio**: For testing code that uses anyio
+- **pytest-cov**: For measuring code coverage
+- **pytest-mock**: For mocking dependencies
 
-Given an initialized MemoryStore instance
-When basic operations are performed (get, set, delete)
-Then the operations should work as expected
-Why: The storage layer is foundational - all other components depend on reliable data storage
+## Phase 1: Core Component Unit Testing
 
+### Storage Layer Testing
+
+**Scenario: In-Memory Storage Operations**
+- **Given** an initialized MemoryStore instance
+- **When** basic operations are performed (get, set, delete)
+- **Then** the operations should work as expected
+- **Why**: The storage layer is foundational - all other components depend on reliable data storage
+
+```python
+# Test cases to implement:
+- test_memory_store_initialization
+- test_memory_store_set_and_get
+- test_memory_store_delete
+- test_memory_store_exists
+- test_memory_store_ttl_expiration
+- test_memory_store_max_size_eviction
+```
+
+**Scenario: Disk Storage Operations**
+- **Given** an initialized DiskStore instance
+- **When** operations are performed with persistence requirements
+- **Then** data should persist between restarts
+- **Why**: Disk storage adds durability guarantees needed for production systems
+
+```python
+# Test cases to implement:
+- test_disk_store_initialization
+- test_disk_store_persistence
+- test_disk_store_recovery
+- test_disk_store_transaction_log
+- test_disk_store_compaction
+```
+
+### Consensus Protocol Testing
+
+**Scenario: Raft Leader Election**
+- **Given** a cluster of Raft nodes
+- **When** the leader node fails
+- **Then** a new leader should be elected
+- **Why**: Leader election is critical for maintaining system availability
+
+```python
+# Test cases to implement:
+- test_raft_node_initialization
+- test_raft_become_follower
+- test_raft_election_timeout
+- test_raft_become_candidate
+- test_raft_vote_counting
+- test_raft_become_leader
+- test_raft_step_down_on_higher_term
+```
+
+**Scenario: Raft Log Replication**
+- **Given** a Raft cluster with a leader
+- **When** a command is submitted to the leader
+- **Then** the command should be replicated to followers
+- **Why**: Log replication ensures all nodes maintain consistent state
+
+```python
+# Test cases to implement:
+- test_raft_append_entry
+- test_raft_replicate_to_followers
+- test_raft_handle_append_entries
+- test_raft_update_commit_index
+- test_raft_apply_committed_entries
+```
+
+### Network Layer Testing
+
+**Scenario: Network Manager Communication**
+- **Given** two network manager instances
+- **When** one sends an RPC to the other
+- **Then** the message should be delivered and processed
+- **Why**: Inter-node communication is essential for distributed operations
+
+```python
+# Test cases to implement:
+- test_network_manager_initialization
+- test_network_manager_register_handlers
+- test_network_manager_send_rpc
+- test_network_manager_handle_incoming_message
+- test_network_manager_retry_mechanism
+- test_network_manager_timeout_handling
+```
+
+## Phase 2: Distribution and Replication Testing
+
+### Replication Strategy Testing
+
+**Scenario: Asynchronous Replication**
+- **Given** a source node with data
+- **When** a change is made to the data
+- **Then** the change should eventually propagate to replica nodes
+- **Why**: Async replication provides availability with eventual consistency
+
+```python
+# Test cases to implement:
+- test_async_replicator_initialization
+- test_async_replicator_replicate_key
+- test_async_replicator_handle_replication
+- test_async_replicator_reconciliation
+- test_async_replicator_conflict_resolution
+```
+
+**Scenario: Synchronous Replication**
+- **Given** a source node with data
+- **When** a change is made with strong consistency requirements
+- **Then** the operation should only succeed after replication
+- **Why**: Sync replication provides stronger consistency guarantees
+
+```python
+# Test cases to implement:
+- test_sync_replicator_initialization
+- test_sync_replicator_replicate_synchronously
+- test_sync_replicator_quorum_requirement
+- test_sync_replicator_failure_handling
+```
+
+### Distribution Strategy Testing
+
+**Scenario: Sharded Distribution**
+- **Given** a sharded cluster
+- **When** operations are performed on different keys
+- **Then** the operations should be routed to the correct shards
+- **Why**: Proper sharding is crucial for horizontal scalability
+
+```python
+# Test cases to implement:
+- test_sharded_distribution_initialization
+- test_sharded_distribution_hash_routing
+- test_sharded_distribution_range_routing
+- test_sharded_distribution_rebalancing
+- test_sharded_distribution_forward_operation
+```
+
+**Scenario: Hierarchical Distribution**
+- **Given** a multi-region hierarchical setup
+- **When** operations target different regions
+- **Then** operations should be routed appropriately
+- **Why**: Hierarchical distribution optimizes for geographical data locality
+
+```python
+# Test cases to implement:
+- test_hierarchical_distribution_initialization
+- test_hierarchical_distribution_region_routing
+- test_hierarchical_distribution_tier_coordination
+- test_hierarchical_distribution_local_optimization
+```
+
+## Phase 3: Service Layer Testing
+
+### Control Plane Testing
+
+**Scenario: Topology Management**
+- **Given** a control plane instance
+- **When** nodes join or leave the cluster
+- **Then** the topology should be updated appropriately
+- **Why**: Accurate topology information is needed for routing and consensus
+
+```python
+# Test cases to implement:
+- test_control_plane_initialization
+- test_control_plane_register_node
+- test_control_plane_unregister_node
+- test_control_plane_update_topology
+- test_control_plane_leadership_management
+- test_control_plane_metadata_sync
+```
+
+**Scenario: Keyspace Configuration**
+- **Given** a control plane instance
+- **When** a keyspace is configured
+- **Then** the configuration should apply across the cluster
+- **Why**: Keyspace configuration defines replication and partitioning strategies
+
+```python
+# Test cases to implement:
+- test_control_plane_configure_keyspace
+- test_control_plane_distribution_topology_updates
+- test_control_plane_rebalancing_coordination
+```
+
+### Data Plane Testing
+
+**Scenario: Operation Processing**
+- **Given** a data plane instance
+- **When** operations are submitted
+- **Then** they should be processed correctly
+- **Why**: The data plane is the primary interface for data operations
+
+```python
+# Test cases to implement:
+- test_data_plane_initialization
+- test_data_plane_process_get
+- test_data_plane_process_set
+- test_data_plane_process_delete
+- test_data_plane_process_scan
+- test_data_plane_process_query
+- test_data_plane_consistency_enforcement
+```
+
+**Scenario: Cache Management**
+- **Given** a data plane with caching enabled
+- **When** repeated read operations are performed
+- **Then** cache hits should improve performance
+- **Why**: Caching is critical for read-heavy workloads
+
+```python
+# Test cases to implement:
+- test_data_plane_cache_initialization
+- test_data_plane_cache_hit
+- test_data_plane_cache_expiration
+- test_data_plane_cache_invalidation
+- test_data_plane_broadcast_invalidation
+```
+
+## Phase 4: Client API Testing
+
+**Scenario: Client Connection**
+- **Given** a client and a running cluster
+- **When** the client connects to the cluster
+- **Then** the connection should succeed
+- **Why**: The client is the primary way applications interact with Exapyte
+
+```python
+# Test cases to implement:
+- test_client_initialization
+- test_client_connect
+- test_client_reconnect
+- test_client_disconnect
+```
+
+**Scenario: Client Operations**
+- **Given** a connected client
+- **When** operations are performed through the client
+- **Then** they should work correctly
+- **Why**: The client API abstracts the complexity of the distributed system
+
+```python
+# Test cases to implement:
+- test_client_get
+- test_client_set
+- test_client_delete
+- test_client_scan
+- test_client_query
+- test_client_batch_operations
+- test_client_consistency_levels
+```
+
+## Phase 5: Integration Testing
+
+**Scenario: Multi-Node Cluster**
+- **Given** a multi-node Exapyte cluster
+- **When** operations are performed across the cluster
+- **Then** they should maintain consistency and availability
+- **Why**: Integration tests validate that components work together correctly
+
+```python
+# Test cases to implement:
+- test_cluster_startup
+- test_node_registration
+- test_cluster_topology_updates
+- test_cross_node_operations
+- test_leader_failover
+- test_data_rebalancing
+```
+
+**Scenario: Failure Recovery**
+- **Given** a running cluster
+- **When** a node fails
+- **Then** the cluster should continue functioning
+- **Why**: Resilience to failures is a key feature of distributed systems
+
+```python
+# Test cases to implement:
+- test_node_failure_handling
+- test_data_recovery
+- test_partial_network_partition
+- test_quorum_loss_and_recovery
+- test_split_brain_prevention
+```
+
+**Scenario: Performance Under Load**
+- **Given** a cluster under various workloads
+- **When** the load increases
+- **Then** performance should degrade gracefully
+- **Why**: Understanding performance characteristics is crucial for capacity planning
+
+```python
+# Test cases to implement:
+- test_read_heavy_workload
+- test_write_heavy_workload
+- test_mixed_workload
+- test_scan_performance
+- test_query_performance
+- test_concurrent_client_connections
+```
+
+## Implementation Approach
+
+For each phase:
+
+1. **Write tests first**: Implement the test cases before implementing the functionality
+2. **Implement minimum code**: Write just enough code to make the tests pass
+3. **Refactor**: Clean up the code while keeping tests passing
+4. **Add functionality**: Incrementally add features with corresponding tests
+
+## Success Criteria
+
+- **Test coverage**: Aim for >80% code coverage
+- **Passing tests**: All tests should pass reliably
+- **Performance targets**: Define and meet latency and throughput targets
+- **Resilience**: System should recover automatically from simulated failures
+- **Consistency**: Data should maintain consistency according to configured levels
+
+## Fixture Design
+
+To support effective testing, create reusable fixtures for:
+
+```python
+# Key fixtures to implement:
+- memory_store_fixture
+- disk_store_fixture
+- raft_node_fixture
+- network_manager_fixture
+- replicator_fixture
+- distribution_strategy_fixture
+- control_plane_fixture
+- data_plane_fixture
+- client_fixture
+- multi_node_cluster_fixture
+```
